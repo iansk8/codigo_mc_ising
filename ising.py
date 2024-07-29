@@ -57,7 +57,7 @@ def metropolis(mcs, matriz, T, L):
 
 
 def calcular_variação_energia(matriz): 
-    sum_vizinhos, y, x = vizinho(matriz, L)
+    sum_vizinhos, y, x, _ = vizinho(matriz, L)
     variacao_energia = 2 * matriz[y][x] * sum_vizinhos
     return variacao_energia, y, x
     
@@ -78,13 +78,22 @@ def vizinho(matriz, L): #Condições de contorno periódica
     for _ in range(num_dir): #Soma sobre os vizinhos
         sum_vizinhos += vizinhos[_] 
         #print(n_vizinhos)
-    return sum_vizinhos, y, x
+    return sum_vizinhos, y, x, vizinhos
+
+
+def energia_tot(matriz, L):
+    arr_spin = []
+    for y in range(L):
+        for x in (L):
+            arr_spin.append(matriz[y][x])
+    for _ in arr_spin:
 
 
 #===================================================================================================================
 #                                          PROGRAMA PRINCIPAL
 matriz = np.array(inicialize_rede(L))
 print('Matriz inicial: ', matriz)
+energia_total = energia_tot(matriz, L)
 metropolis(mcs, matriz, T, L) #Executa o Algoritmo de Metropolis para a equilibração do sistema
 for k in range(range_temp): #Loop sobre as temperaturas
     metropolis(mcs, matriz, T, L) #Executa o algoritmo para calcular as propriedades
