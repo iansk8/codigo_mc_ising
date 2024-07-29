@@ -10,7 +10,6 @@ AUTORES: IAN DE JESUS FONTENELE LOPES/PROF. Dr. CÍCERO THIAGO GOMES DOS SANTOS,
 #============================================================================================
 #                               IMPORTANDO BIBLIOTECAS
 import numpy as np
-from numba import njit
 from math import exp
 #============================================================================================
 
