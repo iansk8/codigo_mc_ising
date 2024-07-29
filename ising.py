@@ -62,7 +62,7 @@ def calcular_variação_energia(matriz):
     return variacao_energia, y, x
     
 
-def vizinho(matriz, L): #Condições de contorno periódica
+def vizinho(matriz, L, y, x): #Condições de contorno periódica
     vizinhos = []
     y = np.random.choice(L) #Site aleatório
     x = np.random.choice(L) #Site aleatório
@@ -82,11 +82,13 @@ def vizinho(matriz, L): #Condições de contorno periódica
 
 
 def energia_tot(matriz, L):
-    arr_spin = []
+    energia_total = 0
     for y in range(L):
-        for x in (L):
-            arr_spin.append(matriz[y][x])
-    for _ in arr_spin:
+        for x in range(L):
+            for _ in range(num_dir):
+                _, _, _, primeiro_vizinho = vizinho(matriz, L, y, x)
+                energia_total += (matriz[y][x] * primeiro_vizinho[_])
+    return energia_total
 
 
 #===================================================================================================================
