@@ -20,7 +20,7 @@ import time
 #                                DEFININDO PARÂMETROS
 
 inicio = time.time()
-l = 8 #dimensão da rede 
+l = 2 #dimensão da rede 
 num_dir = 4 #número de vizinhos
 t = 1.0 #temperatura inicial
 mcs = 10**6 #passo monte carlo
@@ -38,7 +38,7 @@ def inicialize_rede(L): #Cria rede de spins aleatórios
     return matriz
 
 
-#@njit()
+@njit()
 def metropolis(mcs, matriz, T, L):
     #cont_aceite = 0
     #cont_total = 0
@@ -72,29 +72,33 @@ def metropolis(mcs, matriz, T, L):
             #cont_total += 1
             cont += 1
             sum_energia += energia_autal
+            sum_energia_quadrada += energia_autal * energia_autal
+            sum_magnetizaçao += magnetizaçao_atual
        # if (i % 500 == 0):
     e_m = sum_energia/cont
+    e_m_q = sum_energia_quadrada/cont
+    m_m = sum_magnetizaçao/cont
     """sum_energia_quadrada += energia_autal * energia_autal
     sum_magnetizaçao += magnetizaçao_atual
     sum_magnetizaçao_quadrada += magnetizaçao_atual * magnetizaçao_atual"""
     #energia_total = energia_autal
-    return matriz, e_m, energia_autal
+    return matriz, e_m, energia_autal, e_m_q, m_m
 
 
-#@njit()
+@njit()
 def calcular_variação_energia(matriz, L, y, x): 
     sum_vizinhos, _ = vizinho(matriz, L, y, x)
     variacao_energia = 2 * matriz[y][x] * sum_vizinhos
     return variacao_energia
 
 
-#@njit()
+@njit()
 def calcular_variação_magnetizaçao(matriz, y, x):
     variação_magnetizaçao = -2 * matriz[y][x]
     return variação_magnetizaçao
     
 
-#@njit()
+@njit()
 def vizinho(matriz, L, y, x): #Condições de contorno periódica
     vizinhos = []
 
@@ -141,22 +145,40 @@ def resultados( cont, sum_energia, sum_energia_quadrada, L, T, sum_magnetizaçao
 
 #===================================================================================================================
 #                                          PROGRAMA PRINCIPAL
+inicio = time.time()
 matriz = np.array(inicialize_rede(l))
+#print(f"initialize demorou {time.time() - inicio:.2f} segundos")
 #print(f'Matriz inicial: {matriz}')
+inicio = time.time()
 energia_total = energia_tot(matriz, l, num_dir)
-magnetizçao_t = magnetizçao_total(matriz, l)
-matriz, _, _ = metropolis(mcs, matriz, t, l) #Executa o Algoritmo de Metropolis para a equilibração do sistema
+#print(f"energia_tot demorou {time.time() - inicio:.2f} segundos")
+inicio = time.time()
+magnetizçao_t = magnetizçao_total(matriz, l) #tirar função desnecessária
+#print(f"magnetizacao demorou {time.time() - inicio:.2f} segundos")
+inicio = time.time()
+matriz, _, _, _, _ = metropolis(mcs, matriz, t, l) #Executa o Algoritmo de Metropolis para a equilibração do sistema
+print(f"metropolis demorou {time.time() - inicio:.2f} segundos")
+matriz = np.array(matriz)
 energia_media_ps = []
+m_m_ps = []
+calor_esp = []
 t_p = []
+inicio = time.time()
 for k in range(range_temp): #Loop sobre as temperaturas
     t_p.append(t)
-    matriz, e_m, energia_totall = metropolis(mcs, matriz, t, l) #Executa o algoritmo para calcular as propriedades
+    matriz, e_m, energia_totall, e_m_q, m_m = metropolis(mcs, matriz, t, l) #Executa o algoritmo para calcular as propriedades
+    matriz = np.array(matriz)
     energia_total = energia_totall
+    calor = ((e_m_q - (e_m * e_m))/( l * l * t * t))
+    calor_esp.append(calor) #Calor específico por sítio
     t = t + passo_temp
     energia_media_ps.append(e_m/(l * l))
+    m_m_ps.append((m_m)/(l * l))
 print(energia_total)
 fim = time.time()
 print(fim - inicio)
-plt.scatter(t_p, energia_media_ps)
+#plt.scatter(t_p, energia_media_ps)
+plt.scatter(t_p, calor_esp)
+#plt.scatter(t_p,m_m_ps)
 plt.show()
 #=====================================================================================================================
